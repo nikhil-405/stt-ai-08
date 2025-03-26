@@ -10,15 +10,41 @@
            style="width: 300px; height: 30px; font-size: 16px;">
     <br><br>
 
-    <button id = "insert-button" 
+    <!-- insert button that calls the insertDoc function when clicked -->
+    <button id = "insert-button" onclick = "insertDoc()"
             style="width: 120px; height: 40px; font-size: 16px;">Insert into database</button>
     
-    <button id = "search-button" 
+    <!-- search button that calls the search function when clicked -->
+    <button id = "search-button" onclick = "search()"
             style="width: 120px; height: 40px; font-size: 16px;">Search in database</button>
 
     <h3>Output:</h3>
     <div id="output" style="border: 1px solid black; padding: 5px; width: 300px; min-height: 50px;"></div>
 
+    <script>
+        // function that inserts a large document into the db
+        async function insertDoc(){
+            let text = document.getElementById("text-input").value;
+            
+            let response = await fetch('{backend_url}/insert', {
+                method: 'POST',
+                headers: {"Content-Type": 'application/json'},
+                body: JSON.stringify({text: text})
+            });
+
+            let data = await response.json();
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2); // update the content of the element with output id
+        }
+
+        // function that searches for a query among the available documents
+        async function search() {
+            let query = document.getElementById("text-input").value;
+            let response = await fetch('{backend_url}/search?query=' + encodeURIComponent(query));
+
+            let data = await response.json();
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+        }
+    </script>
     
 </body>
 </html>
