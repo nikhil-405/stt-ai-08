@@ -7,22 +7,22 @@ from var import elastic_search_ip, frontend_ip
 import logging
 
 index_name = "index"
-es = Elasticsearch([f"http://{elastic_search_ip}:9200"])
+es_host = "elasticsearch"
+es_port = 9200
+log_file = "logs.json"
+
+
 frontend_ip = f"http://{frontend_ip}:9567"
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = [frontend_ip],
+    allow_origins = ["http://34.47.230.139:9567"],
     allow_credentials = True,
     allow_methods = ["GET", "POST"],
     allow_headers = ["*"],
 )
 
-es_host = "elasticsearch"
-es_port = 9200
-index_name = "myindex"
-log_file = "logs.json"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -99,17 +99,19 @@ def search(query):
 
 # backend function to insert a large document to the ElasticSearch index
 @app.post("/insert")
-async def insert(request: Request):
-    data = await requests.json()
-    text = data.get("text", "").strip()
-    
+async def insert(req: Request):
+    data = await req.json()
+    text = data.get("text").strip()
+    if text is None:
+        raise HTTPException(status_code = 400, detail = "Missing text")
+    text = text.strip()
     if text:
         es.index(index = index_name,
                  document = {"text": text},
                  refresh = True)
-
+        return {"message": "Document inserted successfully !!"}
     else:
-        return {"error": "field empty"}, 250
+        raise HTTPException(status_code = 400, detail = "Field empty")
 
 if __name__ == "__main__":
     uvicorn.run(app, host = "0.0.0.0", port = 9567)

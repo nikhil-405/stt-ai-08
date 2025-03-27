@@ -22,29 +22,24 @@
     <div id="output" style="border: 1px solid black; padding: 5px; width: 300px; min-height: 50px;"></div>
 
     <script>
-        // function that inserts a large document into the db
         async function insertDoc(){
             let text = document.getElementById("text-input").value;
-            
-            let response = await fetch('{backend_url}/insert', {
+            let response = await fetch('/insert', { 
                 method: 'POST',
                 headers: {"Content-Type": 'application/json'},
                 body: JSON.stringify({text: text})
             });
-
             let data = await response.json();
-            document.getElementById('output').innerText = JSON.stringify(data, null, 2); // update the content of the element with output id
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
         }
-
-        // function that searches for a query among the available documents
         async function search() {
             let query = document.getElementById("text-input").value;
-            let response = await fetch('{backend_url}/search?query=' + encodeURIComponent(query));
-
+            let response = await fetch('/search?query=' + encodeURIComponent(query));
             let data = await response.json();
             document.getElementById('output').innerText = JSON.stringify(data, null, 2);
         }
     </script>
+    
     
 </body>
 </html>

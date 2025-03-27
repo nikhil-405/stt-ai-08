@@ -6,4 +6,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 9567
 
-CMD ["python3", "backend.py"]
+CMD ["python3", "app.py"]
