@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-import uvicorn
+import uvicorn  
 import requests
+import logger
 from var2 import backend_ip
 
 backend_url = f"http://{backend_ip}:9567"
@@ -12,13 +13,15 @@ app = FastAPI()
 async def root():
     with open("index.html", "r") as f:
         html_content = f.read()
-    return HTMLResponse(content = html_content, status_code = 200)
+    return HTMLResponse(content = html_content)
 
 # insert endpoint
 @app.post("/insert")
 async def insert_doc(request):
     data = await request.json()
-    return requests.post(backend_url + "/insert", json = data).json
+    responses = requests.post(backend_url + "/insert", json = data).json
+    logger.info("Inserting to db...")
+    return 
 
 # search endpoint
 @app.get("/search")
