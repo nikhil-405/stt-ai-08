@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Query, Request, HTTPException
-from fastapi.middleware.core import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from elasticsearch import Elasticsearch
 import uvicorn
 import requests
 from var import elastic_search_ip, frontend_ip
-
+import logging
 
 index_name = "index"
 es = Elasticsearch([f"http://{elastic_search_ip}:9200"])
@@ -18,6 +18,38 @@ app.add_middleware(
     allow_methods = ["GET", "POST"],
     allow_headers = ["*"],
 )
+
+es_host = "elasticsearch"
+es_port = 9200
+index_name = "myindex"
+log_file = "logs.json"
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def get_es_connection():
+    try:
+        es = Elasticsearch(
+            [f"http://{es_host}:{es_port}"],
+            request_timeout=30,
+            max_retries=3,
+            retry_on_timeout=True,
+            sniff_on_start=False,
+            sniff_on_node_failure=False
+        )
+        
+        if not es.ping():
+            raise ConnectionError("Error")
+            
+        logger.info("Successfully connected Elasticsearch")
+        return es
+    
+    except ConnectionError as e:
+        logger.error(f"Elasticsearch connection failed: {str(e)}")
+        raise HTTPException(status_code = 500, detail = "Service Unavailable - connection failed")
+
+es = get_es_connection()
 
 def init_index():
     if not es.indices.exists(index = index_name):
@@ -67,7 +99,7 @@ def search(query):
 
 # backend function to insert a large document to the ElasticSearch index
 @app.post("/insert")
-def insert(request: Request):
+async def insert(request: Request):
     data = await requests.json()
     text = data.get("text", "").strip()
     
